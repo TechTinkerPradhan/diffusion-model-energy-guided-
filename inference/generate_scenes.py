@@ -75,7 +75,8 @@ def cosine_beta_schedule(timesteps, s=0.008):
     alphas_cumprod = np.cos(((x / timesteps) + s) / (1 + s) * np.pi / 2) ** 2
     alphas_cumprod = alphas_cumprod / alphas_cumprod[0]
     betas = 1 - (alphas_cumprod[1:] / alphas_cumprod[:-1])
-    return np.clip(betas, 0.0001, 0.9999)
+    betas=np.clip(betas, 0.0001, 0.9999)
+    return betas.astype(np.float32)
 
 def get_beta_schedule(timesteps, beta_start=0.0001, beta_end=0.02):
     return np.linspace(beta_start, beta_end, timesteps, dtype=np.float32)

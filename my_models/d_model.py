@@ -9,7 +9,8 @@ class diffmodel(nn.Module):
         self.network = nn.Sequential(
             nn.Linear(input_dim + 1, 128),  # +1 for the timestep
             nn.ReLU(),
-            nn.Linear(128, input_dim)
+            nn.Linear(128, input_dim),
+            nn.Sigmoid()  # Add Sigmoid activation to constrain outputs
         )
     
     def forward(self, x, t):
