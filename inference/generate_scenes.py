@@ -23,14 +23,16 @@ def generate_new_scene(timesteps=1000):
     energy_model.load_state_dict(torch.load('models/energy_model.pth'))
     energy_model.eval()
 
-    beta = np.linspace(0.0001, 0.02, timesteps, dtype=np.float32)
+    beta = cosine_beta_schedule(timesteps)
     beta = torch.from_numpy(beta)
     beta = beta.float()
 
-    x = torch.randn(1, 10*6)  # Start from random noise
+    x = torch.randn(1, 10*6) *0.1  # Start from random noise
 
     for t in tqdm(reversed(range(timesteps))):
         t_tensor = torch.full((1, 1), t, dtype=torch.float32) / timesteps
+        if t % 50 == 0 or t == 935:
+            print(f"Timestep {t}, x stats: mean={x.mean().item()}, std={x.std().item()}, max={x.max().item()}, min={x.min().item()}")
 
         # Diffusion model step without gradient tracking
         with torch.no_grad():
@@ -66,6 +68,18 @@ def generate_new_scene(timesteps=1000):
 
     generated_scene = x.view(10, 6).numpy()
     return generated_scene
+    
+def cosine_beta_schedule(timesteps, s=0.008):
+    steps = timesteps + 1
+    x = np.linspace(0, timesteps, steps)
+    alphas_cumprod = np.cos(((x / timesteps) + s) / (1 + s) * np.pi / 2) ** 2
+    alphas_cumprod = alphas_cumprod / alphas_cumprod[0]
+    betas = 1 - (alphas_cumprod[1:] / alphas_cumprod[:-1])
+    return np.clip(betas, 0.0001, 0.9999)
+
+def get_beta_schedule(timesteps, beta_start=0.0001, beta_end=0.02):
+    return np.linspace(beta_start, beta_end, timesteps, dtype=np.float32)
+
 
 if __name__ == "__main__":
     scene = generate_new_scene()
